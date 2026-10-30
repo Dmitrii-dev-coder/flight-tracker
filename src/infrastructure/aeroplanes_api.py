@@ -6,6 +6,7 @@
 import requests
 from src.infrastructure.api_base import APIConnector
 from src.infrastructure.api_utils import CircuitBreaker
+from src.infrastructure.http_requestor import HTTPRequestor
 
 
 class AeroplanesAPI(APIConnector):
@@ -14,16 +15,25 @@ class AeroplanesAPI(APIConnector):
 
     Наследуется от APIConnector и реализует методы для получения
     географических координат стран и информации о самолётах.
-    Реализует принципы SRP и OCP.
+    Реализует принципы SRP, OCP и DIP.
+
+    DIP: использует HTTPRequestor абстракцию вместо прямого импорта requests.
     """
 
-    def __init__(self):
+    def __init__(self, http_requestor: HTTPRequestor = None):
         """
         Инициализация коннектора к API.
 
-        Устанавливает базовые URL для nominatim и opensky API,
-        а также Circuit Breaker для устойчивого подключения.
+        Args:
+            http_requestor: HTTP-клиент для выполнения запросов.
+                           Если None, создаётся RequestsHTTPClient.
         """
+        if http_requestor is None:
+            from src.infrastructure.requests_http_client import RequestsHTTPClient
+            self._http_requestor = RequestsHTTPClient()
+        else:
+            self._http_requestor = http_requestor
+
         self.nominatim_url = "https://nominatim.openstreetmap.org/search"
         self.opensky_url = "https://opensky-network.org/api/states/all"
         self._circuit_breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=30.0)
@@ -54,10 +64,9 @@ class AeroplanesAPI(APIConnector):
             )
 
         try:
-            response = requests.get(url, params=params, timeout=10.0)
-            response.raise_for_status()
+            result = self._http_requestor.get(url, params=params, timeout=10.0)
             self._circuit_breaker.record_success()
-            return response.json()
+            return result
         except requests.exceptions.RequestException:
             self._circuit_breaker.record_failure()
             raise
