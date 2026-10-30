@@ -49,25 +49,36 @@ poetry run pytest --cov=src --cov-report=html
 flight_tracker/
 ├── data/                    # JSON-файлы с данными
 ├── src/                     # Исходный код
-│   ├── api_base.py          # Абстрактный базовый класс API
-│   ├── aeroplanes_api.py    # Конкретный API-коннектор
-│   ├── aeroplane.py         # Класс самолёта
-│   ├── file_connector.py    # Абстрактный файловый коннектор
-│   ├── json_saver.py        # Сохранение в JSON
-│   ├── csv_saver.py         # Заглушка CSV
-│   ├── txt_saver.py         # Заглушка TXT
-│   ├── filters.py           # Фильтрация и сортировка
-│   └── user_interface.py    # Пользовательский интерфейс
-├── tests/                   # Тесты
-│   ├── test_api_base.py
-│   ├── test_aeroplanes_api.py
+│   ├── application/         # Бизнес-логика
+│   │   ├── aeroplane.py         # Класс самолёта
+│   │   ├── aeroplane_base.py    # Абстрактный базовый класс
+│   │   ├── aeroplane_data.py    # Абстракция данных (ISP)
+│   │   ├── aeroplane_comparable.py  # Абстракция сравнения (ISP)
+│   │   ├── filters.py           # Фильтрация и сортировка
+│   │   └── user_interface.py    # Пользовательский интерфейс
+│   └── infrastructure/      # Инфраструктура
+│       ├── api_base.py            # Абстрактный API-коннектор
+│       ├── aeroplanes_api.py      # Конкретный API-коннектор
+│       ├── api_utils.py         # Circuit Breaker, Retry с Jitter
+│       ├── file_connector.py    # Абстрактный файловый коннектор
+│       ├── http_requestor.py    # Абстракция HTTP-запросов (DIP)
+│       ├── requests_http_client.py  # Реализация HTTP через requests
+│       ├── json_saver.py        # Сохранение в JSON
+│       ├── csv_saver.py         # Заглушка CSV
+│       └── txt_saver.py         # Заглушка TXT
+├── tests/                   # Тесты (111 тестов, покрытие ≥70%)
 │   ├── test_aeroplane.py
 │   ├── test_aeroplane_comparison.py
+│   ├── test_aeroplanes_api.py
+│   ├── test_api_base.py
+│   ├── test_api_utils.py
+│   ├── test_dip_http_requestor.py     # DIP тесты
 │   ├── test_file_connector.py
-│   ├── test_json_saver.py
 │   ├── test_filters.py
-│   ├── test_user_interface.py
-│   └── test_integration.py
+│   ├── test_integration.py
+│   ├── test_isp_separation.py         # ISP тесты
+│   ├── test_json_saver.py
+│   └── test_user_interface.py
 ├── main.py                  # Точка входа
 ├── pyproject.toml           # Зависимости Poetry
 └── .gitignore
@@ -75,11 +86,17 @@ flight_tracker/
 
 ## Используемые технологии
 
-- **ООП:** абстрактные классы, наследование, инкапсуляция, магические методы
-- **Принципы SOLID:** SRP (единственная ответственность), OCP (открытость/закрытость)
+- **ООП:** абстрактные классы, наследование, инкапсуляция, магические методы, множественное наследование
+- **Принципы SOLID:**
+  - SRP — единственная ответственность (каждый класс отвечает за свою область)
+  - OCP — открытость/закрытость (расширение без модификации)
+  - LSP — подстановка наследников (корректная замена абстракций)
+  - ISP — разделение интерфейсов (AeroplaneData, AeroplaneComparable)
+  - DIP — инверсия зависимостей (HTTPRequestor абстракция)
 - **TDD:** тесты написаны до реализации кода
 - **API интеграция:** requests, JSON-ответы, обработка исключений
 - **Устойчивость API:** Circuit Breaker, Retry с Jitter (tenacity)
+- **Паттерны:** Adapter (HTTPRequestor → RequestsHTTPClient), Strategy (Circuit Breaker states)
 
 ## Паттерны устойчивости API
 
