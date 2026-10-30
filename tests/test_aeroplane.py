@@ -10,7 +10,7 @@ import pytest
 
 # Тест 001: Проверка что можно создать экземпляр Aeroplane.
 def test_can_create_aeroplane():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     plane = Aeroplane(
         callsign="UAL1621",
         country="United States",
@@ -23,7 +23,7 @@ def test_can_create_aeroplane():
 
 # Тест 002: Проверка что все атрибуты сохранены корректно.
 def test_attributes_stored_correctly():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     plane = Aeroplane(
         callsign="SWR438A",
         country="Switzerland",
@@ -50,7 +50,7 @@ def test_attributes_stored_correctly():
 
 # Тест 003: Проверка что приватные атрибуты недоступны напрямую.
 def test_private_attributes():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     plane = Aeroplane(
         callsign="TEST",
         country="Test",
@@ -63,7 +63,7 @@ def test_private_attributes():
 
 # Тест 004: Проверка что callsign не может быть пустым.
 def test_empty_callsign_raises_error():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     with pytest.raises(ValueError):
         Aeroplane(
             callsign="",
@@ -75,7 +75,7 @@ def test_empty_callsign_raises_error():
 
 # Тест 005: Проверка что velocity не может быть отрицательным.
 def test_negative_velocity_raises_error():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     with pytest.raises(ValueError):
         Aeroplane(
             callsign="TEST",
@@ -87,7 +87,7 @@ def test_negative_velocity_raises_error():
 
 # Тест 006: Проверка что altitude не может быть отрицательным.
 def test_negative_altitude_raises_error():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     with pytest.raises(ValueError):
         Aeroplane(
             callsign="TEST",
@@ -99,7 +99,7 @@ def test_negative_altitude_raises_error():
 
 # Тест 007: Проверка что geo_altitude не может быть отрицательным.
 def test_negative_geo_altitude_raises_error():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     with pytest.raises(ValueError):
         Aeroplane(
             callsign="TEST",
@@ -112,7 +112,7 @@ def test_negative_geo_altitude_raises_error():
 
 # Тест 008: Проверка магического метода __str__.
 def test_str_method():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     plane = Aeroplane(
         callsign="UAL1621",
         country="United States",
@@ -126,7 +126,7 @@ def test_str_method():
 
 # Тест 009: Проверка магического метода __repr__.
 def test_repr_method():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     plane = Aeroplane(
         callsign="TEST",
         country="Test",
@@ -140,7 +140,7 @@ def test_repr_method():
 
 # Тест 010: Проверка что __eq__ сравнивает по callsign.
 def test_eq_method():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     plane1 = Aeroplane(
         callsign="UAL1621",
         country="United States",
@@ -165,7 +165,7 @@ def test_eq_method():
 
 # Тест 011: Проверка что cast_to_object_list преобразует JSON в объекты.
 def test_cast_to_object_list():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     json_data = [
         [
             "4b1812", "SWR438A ", "Switzerland", 1766166618, 1766166618,
@@ -185,7 +185,7 @@ def test_cast_to_object_list():
 
 # Тест 012: Проверка что cast_to_object_list обрабатывает пустой список.
 def test_cast_to_object_list_empty():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     result = Aeroplane.cast_to_object_list([])
     assert isinstance(result, list)
     assert len(result) == 0
@@ -193,7 +193,7 @@ def test_cast_to_object_list_empty():
 
 # Тест 013: Проверка что cast_to_object_list обрабатывает None элементы.
 def test_cast_to_object_list_with_none():
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
     json_data = [None, ["4b1812", "TEST", "Test", 0, 0, 0.0, 0.0, 1000.0, False, 100.0, 0.0, 0.0, None, 1000.0, "0000", False, 0]]
     result = Aeroplane.cast_to_object_list(json_data)
     assert len(result) == 1

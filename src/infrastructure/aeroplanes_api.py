@@ -4,7 +4,8 @@
 """
 
 import requests
-from src.api_base import APIConnector
+from src.infrastructure.api_base import APIConnector
+from src.infrastructure.api_utils import CircuitBreaker
 
 
 class AeroplanesAPI(APIConnector):
@@ -20,14 +21,20 @@ class AeroplanesAPI(APIConnector):
         """
         Инициализация коннектора к API.
 
-        Устанавливает базовые URL для nominatim и opensky API.
+        Устанавливает базовые URL для nominatim и opensky API,
+        а также Circuit Breaker для устойчивого подключения.
         """
         self.nominatim_url = "https://nominatim.openstreetmap.org/search"
         self.opensky_url = "https://opensky-network.org/api/states/all"
+        self._circuit_breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=30.0)
 
     def make_request(self, url: str, params: dict = None) -> dict:
         """
-        Выполнить HTTP-запрос к API.
+        Выполнить HTTP-запрос к API с Circuit Breaker.
+
+        Проверяет состояние Circuit Breaker перед выполнением запроса.
+        При успешном запросе сбрасывает счётчик ошибок,
+        при ошибке — увеличивает счётчик.
 
         Args:
             url: URL адрес для запроса.
@@ -40,13 +47,22 @@ class AeroplanesAPI(APIConnector):
             requests.exceptions.RequestException: При ошибке сетевого запроса.
             ValueError: При некорректном формате ответа.
         """
+        if not self._circuit_breaker.allow_request():
+            raise requests.exceptions.RequestException(
+                f"Circuit Breaker открыт (состояние: {self._circuit_breaker.state}). "
+                f"Попробуйте позже"
+            )
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=10.0)
             response.raise_for_status()
+            self._circuit_breaker.record_success()
             return response.json()
         except requests.exceptions.RequestException:
+            self._circuit_breaker.record_failure()
             raise
         except ValueError:
+            self._circuit_breaker.record_failure()
             raise ValueError(f"Некорректный JSON-ответ от {url}")
 
     def get_country_coordinates(self, country: str) -> list:

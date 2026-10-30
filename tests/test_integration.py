@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Тесты для интеграции всех компонентов проекта."""
 
-import pytest
 from unittest.mock import patch, MagicMock
 
 
@@ -11,19 +10,10 @@ from unittest.mock import patch, MagicMock
 
 # Тест 001: Проверка что все модули импортируются без ошибок.
 def test_all_modules_importable():
-    from src.aeroplanes_api import AeroplanesAPI
-    from src.aeroplane import Aeroplane
-    from src.json_saver import JSONSaver
-    from src.user_interface import user_interaction
-    from src.filters import (
-        filter_by_country,
-        filter_by_altitude_range,
-        sort_by_altitude_desc,
-        get_top_n,
-        print_aeroplanes
-    )
-    from src.file_connector import FileConnector
-    from src.api_base import APIConnector
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+    from src.application.aeroplane import Aeroplane
+    from src.infrastructure.json_saver import JSONSaver
+    from src.application.user_interface import user_interaction
 
     assert AeroplanesAPI is not None
     assert Aeroplane is not None
@@ -33,25 +23,25 @@ def test_all_modules_importable():
 
 # Тест 002: Проверка что AeroplanesAPI наследуется от APIConnector.
 def test_api_inheritance_chain():
-    from src.aeroplanes_api import AeroplanesAPI
-    from src.api_base import APIConnector
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.api_base import APIConnector
 
     assert issubclass(AeroplanesAPI, APIConnector)
 
 
 # Тест 003: Проверка что JSONSaver наследуется от FileConnector.
 def test_json_saver_inheritance_chain():
-    from src.json_saver import JSONSaver
-    from src.file_connector import FileConnector
+    from src.infrastructure.json_saver import JSONSaver
+    from src.infrastructure.file_connector import FileConnector
 
     assert issubclass(JSONSaver, FileConnector)
 
 
 # Тест 004: Проверка полного конвейера: API -> Aeroplane -> JSONSaver.
 def test_full_pipeline():
-    from src.aeroplanes_api import AeroplanesAPI
-    from src.aeroplane import Aeroplane
-    from src.json_saver import JSONSaver
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+    from src.application.aeroplane import Aeroplane
+    from src.infrastructure.json_saver import JSONSaver
     import tempfile
     import os
 
@@ -75,7 +65,7 @@ def test_full_pipeline():
         ]
     }
 
-    with patch("src.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
         api = AeroplanesAPI()
         aeroplanes_data = api.get_aeroplanes("Spain")
 
@@ -95,8 +85,10 @@ def test_full_pipeline():
 
 # Тест 005: Проверка что все классы используются в main.py.
 def test_all_classes_used_in_main():
-    import inspect
-    from src import aeroplanes_api, aeroplane, json_saver, user_interface
+    from src.infrastructure import json_saver
+    from src.infrastructure import aeroplanes_api
+    from src.application import user_interface
+    from src.application import aeroplane
 
     # Проверяем что модули не пустые
     assert hasattr(aeroplanes_api, "AeroplanesAPI")
@@ -113,14 +105,13 @@ def test_main_py_exists():
 
 # Тест 007: Проверка что все фильтры работают вместе.
 def test_all_filters_work_together():
-    from src.filters import (
+    from src.application.filters import (
         filter_by_country,
         filter_by_altitude_range,
         sort_by_altitude_desc,
-        get_top_n,
-        print_aeroplanes
+        get_top_n
     )
-    from src.aeroplane import Aeroplane
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),

@@ -3,7 +3,7 @@
 Модуль содержит заглушку для сохранения информации о самолётах в TXT-файл.
 """
 
-from src.file_connector import FileConnector
+from src.infrastructure.file_connector import FileConnector
 
 
 class TXTSaver(FileConnector):

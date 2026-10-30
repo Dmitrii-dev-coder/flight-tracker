@@ -13,13 +13,13 @@ from unittest.mock import patch
 
 # Тест 001: Проверка что функция существует и принимает список самолётов.
 def test_user_interaction_exists():
-    from src.user_interface import user_interaction
+    from src.application.user_interface import user_interaction
     assert callable(user_interaction)
 
 
 # Тест 002: Проверка что функция не вызывает ошибок при пустом списке.
 def test_user_interaction_empty_list():
-    from src.user_interface import user_interaction
+    from src.application.user_interface import user_interaction
 
     old_stdout = sys.stdout
     sys.stdout = io.StringIO()
@@ -35,8 +35,8 @@ def test_user_interaction_empty_list():
 
 # Тест 003: Проверка что функция корректно обрабатывает ввод топ N.
 def test_user_interaction_top_n():
-    from src.user_interface import user_interaction
-    from src.aeroplane import Aeroplane
+    from src.application.user_interface import user_interaction
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -62,8 +62,8 @@ def test_user_interaction_top_n():
 
 # Тест 004: Проверка что функция корректно обрабатывает ввод страны.
 def test_user_interaction_country_filter():
-    from src.user_interface import user_interaction
-    from src.aeroplane import Aeroplane
+    from src.application.user_interface import user_interaction
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -84,8 +84,8 @@ def test_user_interaction_country_filter():
 
 # Тест 005: Проверка что функция корректно обрабатывает ввод диапазона высот.
 def test_user_interaction_altitude_range():
-    from src.user_interface import user_interaction
-    from src.aeroplane import Aeroplane
+    from src.application.user_interface import user_interaction
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -106,7 +106,7 @@ def test_user_interaction_altitude_range():
 
 # Тест 006: Проверка что функция обрабатывает некорректный ввод топ N.
 def test_user_interaction_invalid_top_n():
-    from src.user_interface import user_interaction
+    from src.application.user_interface import user_interaction
 
     old_stdout = sys.stdout
     sys.stdout = io.StringIO()
@@ -126,7 +126,7 @@ def test_user_interaction_invalid_top_n():
 
 # Тест 007: Проверка что функция обрабатывает некорректный диапазон высот.
 def test_user_interaction_invalid_altitude():
-    from src.user_interface import user_interaction
+    from src.application.user_interface import user_interaction
 
     old_stdout = sys.stdout
     sys.stdout = io.StringIO()

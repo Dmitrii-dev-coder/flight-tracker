@@ -3,7 +3,7 @@
 Модуль содержит функцию для взаимодействия с пользователем через консоль.
 """
 
-from src.filters import (
+from src.application.filters import (
     filter_by_country,
     filter_by_altitude_range,
     sort_by_altitude_desc,

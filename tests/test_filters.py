@@ -12,8 +12,8 @@ import pytest
 
 # Тест 001: Проверка filter_by_country — позитивный тест.
 def test_filter_by_country_positive():
-    from src.filters import filter_by_country
-    from src.aeroplane import Aeroplane
+    from src.application.filters import filter_by_country
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -29,8 +29,8 @@ def test_filter_by_country_positive():
 
 # Тест 002: Проверка filter_by_country — несколько стран.
 def test_filter_by_country_multiple():
-    from src.filters import filter_by_country
-    from src.aeroplane import Aeroplane
+    from src.application.filters import filter_by_country
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -44,8 +44,8 @@ def test_filter_by_country_multiple():
 
 # Тест 003: Проверка filter_by_country — пустой список.
 def test_filter_by_country_empty():
-    from src.filters import filter_by_country
-    from src.aeroplane import Aeroplane
+    from src.application.filters import filter_by_country
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -57,8 +57,8 @@ def test_filter_by_country_empty():
 
 # Тест 004: Проверка filter_by_altitude_range — позитивный тест.
 def test_filter_by_altitude_range_positive():
-    from src.filters import filter_by_altitude_range
-    from src.aeroplane import Aeroplane
+    from src.application.filters import filter_by_altitude_range
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -72,8 +72,8 @@ def test_filter_by_altitude_range_positive():
 
 # Тест 005: Проверка filter_by_altitude_range — ошибка при min > max.
 def test_filter_by_altitude_range_invalid():
-    from src.filters import filter_by_altitude_range
-    from src.aeroplane import Aeroplane
+    from src.application.filters import filter_by_altitude_range
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -85,8 +85,8 @@ def test_filter_by_altitude_range_invalid():
 
 # Тест 006: Проверка sort_by_altitude_desc — сортировка по убыванию.
 def test_sort_by_altitude_desc():
-    from src.filters import sort_by_altitude_desc
-    from src.aeroplane import Aeroplane
+    from src.application.filters import sort_by_altitude_desc
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -102,7 +102,7 @@ def test_sort_by_altitude_desc():
 
 # Тест 007: Проверка sort_by_altitude_desc — пустой список.
 def test_sort_by_altitude_desc_empty():
-    from src.filters import sort_by_altitude_desc
+    from src.application.filters import sort_by_altitude_desc
 
     result = sort_by_altitude_desc([])
     assert result == []
@@ -110,8 +110,8 @@ def test_sort_by_altitude_desc_empty():
 
 # Тест 008: Проверка get_top_n — возврат N элементов.
 def test_get_top_n():
-    from src.filters import get_top_n, sort_by_altitude_desc
-    from src.aeroplane import Aeroplane
+    from src.application.filters import get_top_n, sort_by_altitude_desc
+    from src.application.aeroplane import Aeroplane
 
     planes = [
         Aeroplane(callsign="FLIGHT1", country="Spain", velocity=100.0, altitude=1000.0),
@@ -128,7 +128,7 @@ def test_get_top_n():
 
 # Тест 009: Проверка get_top_n — ошибка при отрицательном N.
 def test_get_top_n_negative():
-    from src.filters import get_top_n
+    from src.application.filters import get_top_n
 
     with pytest.raises(ValueError):
         get_top_n([], -1)
@@ -136,8 +136,8 @@ def test_get_top_n_negative():
 
 # Тест 010: Проверка print_aeroplanes — вывод не вызывает ошибок.
 def test_print_aeroplanes_no_error():
-    from src.filters import print_aeroplanes
-    from src.aeroplane import Aeroplane
+    from src.application.filters import print_aeroplanes
+    from src.application.aeroplane import Aeroplane
     import io
     import sys
 
@@ -158,7 +158,7 @@ def test_print_aeroplanes_no_error():
 
 # Тест 011: Проверка print_aeroplanes — пустой список.
 def test_print_aeroplanes_empty():
-    from src.filters import print_aeroplanes
+    from src.application.filters import print_aeroplanes
     import io
     import sys
 

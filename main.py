@@ -6,10 +6,12 @@
 файловое хранилище и пользовательский интерфейс.
 """
 
-from src.aeroplanes_api import AeroplanesAPI
-from src.aeroplane import Aeroplane
-from src.json_saver import JSONSaver
-from src.user_interface import user_interaction
+import requests
+
+from src.infrastructure.aeroplanes_api import AeroplanesAPI
+from src.application.aeroplane import Aeroplane
+from src.infrastructure.json_saver import JSONSaver
+from src.application.user_interface import user_interaction
 
 
 def main():
@@ -33,7 +35,12 @@ def main():
 
     # Получение данных о самолётах
     print(f"\nПолучение данных о самолётах в воздушном пространстве {country}...")
-    aeroplanes_data = api.get_aeroplanes(country)
+    try:
+        aeroplanes_data = api.get_aeroplanes(country)
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка подключения к API: {e}")
+        print("Проверьте подключение к интернету и попробуйте снова")
+        return
 
     if not aeroplanes_data:
         print(f"Самолёты в воздушном пространстве {country} не найдены")

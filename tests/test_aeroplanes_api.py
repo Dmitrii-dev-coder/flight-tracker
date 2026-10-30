@@ -12,14 +12,14 @@ import requests
 
 # Тест 001: Проверка что AeroplanesAPI наследуется от APIConnector.
 def test_aeroplanes_api_inherits_from_api_connector():
-    from src.aeroplanes_api import AeroplanesAPI
-    from src.api_base import APIConnector
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.api_base import APIConnector
     assert issubclass(AeroplanesAPI, APIConnector)
 
 
 # Тест 002: Проверка что можно создать экземпляр AeroplanesAPI.
 def test_can_instantiate_aeroplanes_api():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
     api = AeroplanesAPI()
     assert api is not None
     assert isinstance(api, AeroplanesAPI)
@@ -27,7 +27,7 @@ def test_can_instantiate_aeroplanes_api():
 
 # Тест 003: Проверка что get_country_coordinates возвращает boundingbox.
 def test_get_country_coordinates_returns_bbox():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -37,7 +37,7 @@ def test_get_country_coordinates_returns_bbox():
         "boundingbox": ["41.6765597", "83.3362128", "-141.0027500", "-52.3237664"]
     }]
 
-    with patch("src.aeroplanes_api.requests.get", return_value=mock_response):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", return_value=mock_response):
         api = AeroplanesAPI()
         result = api.get_country_coordinates("Canada")
 
@@ -51,9 +51,9 @@ def test_get_country_coordinates_returns_bbox():
 
 # Тест 004: Проверка что get_country_coordinates обрабатывает ошибку сети.
 def test_get_country_coordinates_handles_request_error():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
-    with patch("src.aeroplanes_api.requests.get", side_effect=requests.exceptions.RequestException("Network error")):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=requests.exceptions.RequestException("Network error")):
         api = AeroplanesAPI()
         with pytest.raises(requests.exceptions.RequestException):
             api.get_country_coordinates("UnknownCountry")
@@ -61,13 +61,13 @@ def test_get_country_coordinates_handles_request_error():
 
 # Тест 005: Проверка что get_country_coordinates обрабатывает отсутствие данных.
 def test_get_country_coordinates_no_data():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = []
 
-    with patch("src.aeroplanes_api.requests.get", return_value=mock_response):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", return_value=mock_response):
         api = AeroplanesAPI()
         with pytest.raises(ValueError):
             api.get_country_coordinates("EmptyCountry")
@@ -75,7 +75,7 @@ def test_get_country_coordinates_no_data():
 
 # Тест 006: Проверка что get_aeroplanes возвращает список самолётов.
 def test_get_aeroplanes_returns_list():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
     mock_nominatim = MagicMock()
     mock_nominatim.status_code = 200
@@ -97,7 +97,7 @@ def test_get_aeroplanes_returns_list():
         ]
     }
 
-    with patch("src.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
         api = AeroplanesAPI()
         result = api.get_aeroplanes("Spain")
 
@@ -107,7 +107,7 @@ def test_get_aeroplanes_returns_list():
 
 # Тест 007: Проверка что get_aeroplanes фильтрует по boundingbox.
 def test_get_aeroplanes_filters_by_bbox():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
     mock_nominatim = MagicMock()
     mock_nominatim.status_code = 200
@@ -139,7 +139,7 @@ def test_get_aeroplanes_filters_by_bbox():
         ]
     }
 
-    with patch("src.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
         api = AeroplanesAPI()
         result = api.get_aeroplanes("Spain")
 
@@ -149,13 +149,13 @@ def test_get_aeroplanes_filters_by_bbox():
 
 # Тест 008: Проверка что make_request обрабатывает неверный JSON.
 def test_make_request_handles_invalid_json():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.side_effect = ValueError("Invalid JSON")
 
-    with patch("src.aeroplanes_api.requests.get", return_value=mock_response):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", return_value=mock_response):
         api = AeroplanesAPI()
         with pytest.raises(ValueError):
             api.make_request("https://example.com/api")
@@ -163,15 +163,59 @@ def test_make_request_handles_invalid_json():
 
 # Тест 009: Проверка что make_request возвращает данные при успешном запросе.
 def test_make_request_success():
-    from src.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
 
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"key": "value", "count": 42}
 
-    with patch("src.aeroplanes_api.requests.get", return_value=mock_response):
+    with patch("src.infrastructure.aeroplanes_api.requests.get", return_value=mock_response):
         api = AeroplanesAPI()
         result = api.make_request("https://example.com/api", {"param": "test"})
 
     assert result["key"] == "value"
     assert result["count"] == 42
+
+
+# Тест 010: Проверка что CircuitBreaker открывается после ошибок.
+def test_circuit_breaker_opens_after_failures():
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+
+    api = AeroplanesAPI()
+
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=requests.exceptions.RequestException("Error")):
+        for _ in range(5):
+            try:
+                api.make_request("https://example.com/api")
+            except requests.exceptions.RequestException:
+                pass
+
+    assert api._circuit_breaker.state == "OPEN"
+
+    with pytest.raises(requests.exceptions.RequestException) as exc_info:
+        api.make_request("https://example.com/api")
+    assert "Circuit Breaker открыт" in str(exc_info.value)
+
+
+# Тест 011: Проверка что CircuitBreaker сбрасывается после успеха.
+def test_circuit_breaker_resets_on_success():
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+
+    api = AeroplanesAPI()
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"key": "value"}
+
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=[
+        requests.exceptions.RequestException("Error"),
+        mock_response
+    ]):
+        try:
+            api.make_request("https://example.com/api")
+        except requests.exceptions.RequestException:
+            pass
+
+        result = api.make_request("https://example.com/api")
+        assert result["key"] == "value"
+        assert api._circuit_breaker.state == "CLOSED"
