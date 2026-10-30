@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Тесты для модуля src.infrastructure.api_utils."""
 
-import pytest
 from unittest.mock import patch, MagicMock
 import requests
 

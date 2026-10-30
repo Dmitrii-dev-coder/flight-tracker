@@ -9,7 +9,7 @@
 
 import time
 import random
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from typing import Any, Dict, Optional
 import requests
 
 
@@ -73,7 +73,7 @@ class CircuitBreaker:
         return self._state
 
 
-def make_request_with_retry(url: str, params: dict = None, timeout: float = 10.0) -> dict:
+def make_request_with_retry(url: str, params: Optional[Dict[str, Any]] = None, timeout: float = 10.0) -> dict:
     """
     Выполнить HTTP-запрос с паттернами Retry и Jitter.
 

@@ -4,6 +4,7 @@
 """
 
 import requests
+from typing import Any, Dict, Optional
 from src.infrastructure.api_base import APIConnector
 from src.infrastructure.api_utils import CircuitBreaker
 from src.infrastructure.http_requestor import HTTPRequestor
@@ -20,7 +21,7 @@ class AeroplanesAPI(APIConnector):
     DIP: использует HTTPRequestor абстракцию вместо прямого импорта requests.
     """
 
-    def __init__(self, http_requestor: HTTPRequestor = None):
+    def __init__(self, http_requestor: Optional[HTTPRequestor] = None):
         """
         Инициализация коннектора к API.
 
@@ -30,7 +31,7 @@ class AeroplanesAPI(APIConnector):
         """
         if http_requestor is None:
             from src.infrastructure.requests_http_client import RequestsHTTPClient
-            self._http_requestor = RequestsHTTPClient()
+            self._http_requestor: HTTPRequestor = RequestsHTTPClient()
         else:
             self._http_requestor = http_requestor
 
@@ -38,7 +39,7 @@ class AeroplanesAPI(APIConnector):
         self.opensky_url = "https://opensky-network.org/api/states/all"
         self._circuit_breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=30.0)
 
-    def make_request(self, url: str, params: dict = None) -> dict:
+    def make_request(self, url: str, params: Optional[Dict[str, Any]] = None) -> dict:
         """
         Выполнить HTTP-запрос к API с Circuit Breaker.
 
@@ -130,7 +131,7 @@ class AeroplanesAPI(APIConnector):
         except ValueError:
             raise
 
-        params = {}
+        params: Dict[str, Any] = {}
         result = self.make_request(self.opensky_url, params)
 
         if not result or "states" not in result:
@@ -147,8 +148,8 @@ class AeroplanesAPI(APIConnector):
             longitude = state[5]
             latitude = state[6]
 
-            if (min_lon <= longitude <= max_lon and
-                    min_lat <= latitude <= max_lat):
+            if (min_lon <= longitude <= max_lon
+                    and min_lat <= latitude <= max_lat):
                 filtered.append(state)
 
         return filtered

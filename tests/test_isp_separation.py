@@ -102,14 +102,13 @@ def test_aeroplane_comparable_has_only_comparison_methods():
 # Тест 010: Клиент, которому нужно только сравнение, не зависит от данных.
 def test_comparison_client_does_not_need_data():
     from src.application.aeroplane import Aeroplane
-    from src.application.aeroplane_comparable import AeroplaneComparable
 
     plane1 = Aeroplane(callsign="FLIGHT1", country="USA", velocity=100.0, altitude=1000.0)
     plane2 = Aeroplane(callsign="FLIGHT2", country="USA", velocity=200.0, altitude=1000.0)
 
     # Функция принимает только AeroplaneComparable (сравнение)
     def sort_by_velocity(items: list) -> list:
-        return sorted(items, key=lambda x: x)
+        return sorted(items)
 
     result = sort_by_velocity([plane1, plane2])
     assert result[0].velocity == 100.0
@@ -147,7 +146,7 @@ def test_isp_polymorphism():
         return p.callsign
 
     # Зависимость от AeroplaneComparable
-    def compare_as_comparable(p: AeroplaneComparable) -> bool:
+    def compare_as_comparable(p):
         return p.velocity > 100.0
 
     assert get_info_as_data(plane) == "TEST"

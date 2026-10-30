@@ -3,7 +3,7 @@
 """
 
 from abc import ABC, abstractmethod
-import requests
+from typing import Any, Dict, Optional
 
 
 class APIConnector(ABC):
@@ -57,7 +57,7 @@ class APIConnector(ABC):
         pass
 
     @abstractmethod
-    def make_request(self, url: str, params: dict = None) -> dict:
+    def make_request(self, url: str, params: Optional[Dict[str, Any]] = None) -> dict:
         """
         Выполнить HTTP-запрос к API.
 
