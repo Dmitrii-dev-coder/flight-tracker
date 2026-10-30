@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "flight-tracker"
+version = "0.1.0"
+description = "Трекер самолётов — интеграция с внешними API"
+authors = ["Дмитрий <dmitry@example.com>"]
+
+[[tool.poetry.packages]]
+include = "src"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 70
