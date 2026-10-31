@@ -10,6 +10,7 @@ from src.application.filters import (
     get_top_n,
     print_aeroplanes
 )
+from src.application.country_normalizer import normalize_countries
 
 
 def user_interaction(aeroplanes: list):
@@ -40,9 +41,15 @@ def user_interaction(aeroplanes: list):
     # Фильтрация по стране
     filter_words = input("\nВведите названия стран для фильтрации (через пробел): ").split()
     if filter_words:
-        filtered = filter_by_country(aeroplanes, filter_words)
-        print(f"\n--- Самолёты в стране: {', '.join(filter_words)} ---")
-        print_aeroplanes(filtered)
+        normalized, unknown = normalize_countries(filter_words)
+        if unknown:
+            print(f"\nВнимание: страны не распознаны: {', '.join(unknown)}")
+        if normalized:
+            filtered = filter_by_country(aeroplanes, normalized)
+            print(f"\n--- Самолёты в стране: {', '.join(normalized)} ---")
+            print_aeroplanes(filtered)
+        else:
+            print("Страны не найдены")
 
     # Фильтрация по диапазону высот
     altitude_input = input("\nВведите диапазон высот полёта (например: 1000 - 5000): ")
