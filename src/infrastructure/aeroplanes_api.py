@@ -3,7 +3,6 @@
 Модуль содержит класс для работы с API opensky-network.org.
 """
 
-import requests
 from typing import Any, Dict, Optional
 from src.infrastructure.api_base import APIConnector
 from src.infrastructure.api_utils import CircuitBreaker
@@ -30,14 +29,26 @@ class AeroplanesAPI(APIConnector):
                            Если None, создаётся RequestsHTTPClient.
         """
         if http_requestor is None:
-            from src.infrastructure.requests_http_client import RequestsHTTPClient
-            self._http_requestor: HTTPRequestor = RequestsHTTPClient()
+            self._http_requestor: HTTPRequestor = self._create_default_requestor()
         else:
             self._http_requestor = http_requestor
 
         self.nominatim_url = "https://nominatim.openstreetmap.org/search"
         self.opensky_url = "https://opensky-network.org/api/states/all"
         self._circuit_breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=30.0)
+
+    def _create_default_requestor(self) -> HTTPRequestor:
+        """
+        Создать HTTP-клиент по умолчанию.
+
+        Используется как фабрика для создания HTTPRequestor.
+        Позволяет переопределить в подклассах для тестирования.
+
+        Returns:
+            Экземпляр HTTPRequestor.
+        """
+        from src.infrastructure.requests_http_client import RequestsHTTPClient
+        return RequestsHTTPClient()
 
     def make_request(self, url: str, params: Optional[Dict[str, Any]] = None) -> dict:
         """
@@ -59,7 +70,7 @@ class AeroplanesAPI(APIConnector):
             ValueError: При некорректном формате ответа.
         """
         if not self._circuit_breaker.allow_request():
-            raise requests.exceptions.RequestException(
+            raise RuntimeError(
                 f"Circuit Breaker открыт (состояние: {self._circuit_breaker.state}). "
                 f"Попробуйте позже"
             )
@@ -68,7 +79,7 @@ class AeroplanesAPI(APIConnector):
             result = self._http_requestor.get(url, params=params, timeout=10.0)
             self._circuit_breaker.record_success()
             return result
-        except requests.exceptions.RequestException:
+        except RuntimeError:
             self._circuit_breaker.record_failure()
             raise
         except ValueError:

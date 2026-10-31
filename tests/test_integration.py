@@ -40,47 +40,42 @@ def test_json_saver_inheritance_chain():
 # Тест 004: Проверка полного конвейера: API -> Aeroplane -> JSONSaver.
 def test_full_pipeline():
     from src.infrastructure.aeroplanes_api import AeroplanesAPI
+    from src.infrastructure.http_requestor import HTTPRequestor
     from src.application.aeroplane import Aeroplane
     from src.infrastructure.json_saver import JSONSaver
     import tempfile
     import os
 
-    mock_nominatim = MagicMock()
-    mock_nominatim.status_code = 200
-    mock_nominatim.json.return_value = [{
-        "name": "Spain",
-        "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]
-    }]
-
-    mock_opensky = MagicMock()
-    mock_opensky.status_code = 200
-    mock_opensky.json.return_value = {
-        "time": 1766142246,
-        "states": [
-            [
-                "plane1", "FLT1", "Spain", 0, 0,
-                1.0, 41.0, 5000.0, False, 200.0, 0.0, 0.0,
-                None, 5000.0, "0000", False, 0
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.side_effect = [
+        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
+        {
+            "time": 1766142246,
+            "states": [
+                [
+                    "plane1", "FLT1", "Spain", 0, 0,
+                    1.0, 41.0, 5000.0, False, 200.0, 0.0, 0.0,
+                    None, 5000.0, "0000", False, 0
+                ]
             ]
-        ]
-    }
+        }
+    ]
 
-    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
-        api = AeroplanesAPI()
-        aeroplanes_data = api.get_aeroplanes("Spain")
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+    aeroplanes_data = api.get_aeroplanes("Spain")
 
-        aeroplanes = Aeroplane.cast_to_object_list(aeroplanes_data)
+    aeroplanes = Aeroplane.cast_to_object_list(aeroplanes_data)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            filepath = os.path.join(tmpdir, "test_integration.json")
-            saver = JSONSaver(filepath=filepath)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filepath = os.path.join(tmpdir, "test_integration.json")
+        saver = JSONSaver(filepath=filepath)
 
-            for plane in aeroplanes:
-                saver.add_aeroplane(plane)
+        for plane in aeroplanes:
+            saver.add_aeroplane(plane)
 
-            saved = saver.get_aeroplanes()
-            assert len(saved) == 1
-            assert saved[0].callsign == "FLT1"
+        saved = saver.get_aeroplanes()
+        assert len(saved) == 1
+        assert saved[0].callsign == "FLT1"
 
 
 # Тест 005: Проверка что все классы используются в main.py.

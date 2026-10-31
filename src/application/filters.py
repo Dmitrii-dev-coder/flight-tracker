@@ -70,21 +70,3 @@ def get_top_n(aeroplanes: list, n: int) -> list:
         raise ValueError(f"Количество не может быть отрицательным: {n}")
 
     return aeroplanes[:n]
-
-
-def print_aeroplanes(aeroplanes: list):
-    """
-    Вывести информацию о самолётах в человекочитаемом формате.
-
-    Args:
-        aeroplanes: Список объектов Aeroplane.
-    """
-    if not aeroplanes:
-        print("Самолёты не найдены")
-        return
-
-    print(f"{'№':<5} {'Позывной':<15} {'Страна':<20} {'Скорость (м/с)':<15} {'Высота (м)':<12}")
-    print("-" * 67)
-
-    for i, plane in enumerate(aeroplanes, 1):
-        print(f"{i:<5} {plane.callsign:<15} {plane.country:<20} {plane.velocity:<15.1f} {plane.altitude:<12.1f}")

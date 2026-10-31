@@ -91,24 +91,21 @@ def test_circuit_breaker_closes_after_half_open_success():
 # Тест 007: Проверка что make_request_with_retry выполняет запрос.
 def test_make_request_with_retry_success():
     from src.infrastructure.api_utils import make_request_with_retry
+    from src.infrastructure.http_requestor import HTTPRequestor
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"key": "value"}
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.return_value = {"key": "value"}
 
-    with patch("requests.get", return_value=mock_response):
-        result = make_request_with_retry("https://example.com/api")
-        assert result["key"] == "value"
+    result = make_request_with_retry(mock_requestor, "https://example.com/api")
+    assert result["key"] == "value"
 
 
 # Тест 008: Проверка что make_request_with_retry обрабатывает Timeout.
 def test_make_request_with_retry_timeout():
     from src.infrastructure.api_utils import make_request_with_retry
+    from src.infrastructure.http_requestor import HTTPRequestor
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"key": "value"}
-
+    mock_requestor = MagicMock(spec=HTTPRequestor)
     call_count = 0
 
     def mock_get(*args, **kwargs):
@@ -116,23 +113,22 @@ def test_make_request_with_retry_timeout():
         call_count += 1
         if call_count == 1:
             raise requests.exceptions.Timeout("Timeout")
-        return mock_response
+        return {"key": "value"}
 
-    with patch("requests.get", side_effect=mock_get):
-        result = make_request_with_retry("https://example.com/api")
-        assert result["key"] == "value"
-        assert call_count == 2  # Первый вызов упал, второй успешный
+    mock_requestor.get.side_effect = mock_get
+    result = make_request_with_retry(mock_requestor, "https://example.com/api")
+    assert result["key"] == "value"
+    assert call_count == 2  # Первый вызов упал, второй успешный
 
 
 # Тест 009: Проверка что make_request_with_retry передаёт timeout.
 def test_make_request_with_retry_timeout_param():
     from src.infrastructure.api_utils import make_request_with_retry
+    from src.infrastructure.http_requestor import HTTPRequestor
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"key": "value"}
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.return_value = {"key": "value"}
 
-    with patch("requests.get", return_value=mock_response) as mock_get:
-        make_request_with_retry("https://example.com/api", timeout=15.0)
-        mock_get.assert_called_once()
-        assert mock_get.call_args[1]["timeout"] == 15.0
+    make_request_with_retry(mock_requestor, "https://example.com/api", timeout=15.0)
+    mock_requestor.get.assert_called_once()
+    assert mock_requestor.get.call_args[1]["timeout"] == 15.0

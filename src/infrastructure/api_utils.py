@@ -9,8 +9,9 @@
 
 import time
 import random
-from typing import Any, Dict, Optional
 import requests
+from typing import Any, Dict, Optional
+from src.infrastructure.http_requestor import HTTPRequestor
 
 
 class CircuitBreaker:
@@ -73,7 +74,12 @@ class CircuitBreaker:
         return self._state
 
 
-def make_request_with_retry(url: str, params: Optional[Dict[str, Any]] = None, timeout: float = 10.0) -> dict:
+def make_request_with_retry(
+    requestor: HTTPRequestor,
+    url: str,
+    params: Optional[Dict[str, Any]] = None,
+    timeout: float = 10.0
+) -> dict:
     """
     Выполнить HTTP-запрос с паттернами Retry и Jitter.
 
@@ -81,6 +87,7 @@ def make_request_with_retry(url: str, params: Optional[Dict[str, Any]] = None, t
     Jitter: случайная задержка 0-2 секунды после базовой паузы
 
     Args:
+        requestor: HTTP-клиент для выполнения запросов.
         url: URL для запроса
         params: Словарь с параметрами запроса
         timeout: Таймаут запроса в секундах
@@ -93,15 +100,13 @@ def make_request_with_retry(url: str, params: Optional[Dict[str, Any]] = None, t
         ValueError: При некорректном JSON-ответе
     """
     try:
-        response = requests.get(url, params=params, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
+        response = requestor.get(url, params=params, timeout=timeout)
+        return response
     except requests.exceptions.Timeout:
         # Retry с Jitter
         time.sleep(1 + random.uniform(0, 2))
-        response = requests.get(url, params=params, timeout=timeout)
-        response.raise_for_status()
-        return response.json()
+        response = requestor.get(url, params=params, timeout=timeout)
+        return response
     except requests.exceptions.RequestException:
         raise
     except ValueError:

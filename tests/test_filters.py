@@ -136,7 +136,7 @@ def test_get_top_n_negative():
 
 # Тест 010: Проверка print_aeroplanes — вывод не вызывает ошибок.
 def test_print_aeroplanes_no_error():
-    from src.application.filters import print_aeroplanes
+    from src.application.user_interface import print_aeroplanes
     from src.application.aeroplane import Aeroplane
     import io
     import sys
@@ -158,7 +158,7 @@ def test_print_aeroplanes_no_error():
 
 # Тест 011: Проверка print_aeroplanes — пустой список.
 def test_print_aeroplanes_empty():
-    from src.application.filters import print_aeroplanes
+    from src.application.user_interface import print_aeroplanes
     import io
     import sys
 

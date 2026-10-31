@@ -5,7 +5,9 @@
 
 import json
 import os
+from typing import Any, Dict, Optional
 from src.infrastructure.file_connector import FileConnector
+from src.application.aeroplane_data import AeroplaneData
 
 
 class JSONSaver(FileConnector):
@@ -126,7 +128,7 @@ class JSONSaver(FileConnector):
         except AttributeError as e:
             raise AttributeError(f"Объект не имеет необходимых атрибутов: {e}")
 
-    def get_aeroplanes(self, **filters):
+    def get_aeroplanes(self, **filters) -> list:
         """
         Получить список самолётов из файла по критериям.
 
@@ -140,8 +142,6 @@ class JSONSaver(FileConnector):
             IOError: При ошибке чтения файла.
             ValueError: Если фильтр содержит неизвестный ключ.
         """
-        from src.application.aeroplane import Aeroplane
-
         try:
             data = self._load_data()
         except (FileNotFoundError, json.JSONDecodeError) as e:
@@ -152,18 +152,7 @@ class JSONSaver(FileConnector):
 
         for item in data:
             try:
-                plane = Aeroplane(
-                    callsign=item.get("callsign", ""),
-                    country=item.get("country", ""),
-                    velocity=item.get("velocity", 0.0),
-                    altitude=item.get("altitude", 0.0),
-                    latitude=item.get("latitude", 0.0),
-                    longitude=item.get("longitude", 0.0),
-                    on_ground=item.get("on_ground", False),
-                    geo_altitude=item.get("geo_altitude", 0.0),
-                    vertical_rate=item.get("vertical_rate", 0.0),
-                    true_track=item.get("true_track", 0.0)
-                )
+                plane = self._dict_to_aeroplane(item)
             except ValueError as e:
                 print(f"Ошибка создания объекта самолёта: {e}")
                 continue
@@ -180,3 +169,31 @@ class JSONSaver(FileConnector):
                 aeroplanes.append(plane)
 
         return aeroplanes
+
+    def _dict_to_aeroplane(self, data: Dict[str, Any]) -> AeroplaneData:
+        """
+        Преобразовать словарь данных в объект Aeroplane.
+
+        Args:
+            data: Словарь с данными о самолёте.
+
+        Returns:
+            Объект AeroplaneData.
+
+        Raises:
+            ValueError: Если данные некорректны.
+        """
+        from src.application.aeroplane import Aeroplane
+
+        return Aeroplane(
+            callsign=data.get("callsign", ""),
+            country=data.get("country", ""),
+            velocity=data.get("velocity", 0.0),
+            altitude=data.get("altitude", 0.0),
+            latitude=data.get("latitude", 0.0),
+            longitude=data.get("longitude", 0.0),
+            on_ground=data.get("on_ground", False),
+            geo_altitude=data.get("geo_altitude", 0.0),
+            vertical_rate=data.get("vertical_rate", 0.0),
+            true_track=data.get("true_track", 0.0)
+        )
