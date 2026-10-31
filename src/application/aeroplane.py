@@ -258,11 +258,16 @@ class Aeroplane(AeroplaneBase):
             if not callsign:
                 continue
 
+            # Отрицательное значение altitude означает "недоступно" (специальное значение opensky)
+            altitude = state[7] if state[7] is not None else 0.0
+            if altitude < 0:
+                altitude = 0.0
+
             aeroplanes.append(Aeroplane(
                 callsign=callsign,
                 country=state[2],
                 velocity=state[9] if state[9] is not None else 0.0,
-                altitude=state[7] if state[7] is not None else 0.0,
+                altitude=altitude,
                 latitude=state[6] if state[6] is not None else 0.0,
                 longitude=state[5] if state[5] is not None else 0.0,
                 on_ground=state[8] if state[8] is not None else False,

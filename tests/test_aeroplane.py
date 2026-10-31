@@ -211,3 +211,16 @@ def test_cast_to_object_list_skips_empty_callsign():
     result = Aeroplane.cast_to_object_list(json_data)
     assert len(result) == 1
     assert result[0].callsign == "FLT1"
+
+
+# Тест 015: Проверка что отрицательная высота заменяется на 0.
+def test_cast_to_object_list_negative_altitude():
+    from src.application.aeroplane import Aeroplane
+    json_data = [
+        ["plane1", "FLT1", "Spain", 0, 0, 1.0, 41.0, -121.92, False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
+        ["plane2", "FLT2", "Spain", 0, 0, 2.0, 42.0, 6000.0, False, 250.0, 90.0, 0.0, None, 6000.0, "0001", False, 0]
+    ]
+    result = Aeroplane.cast_to_object_list(json_data)
+    assert len(result) == 2
+    assert result[0].altitude == 0.0
+    assert result[1].altitude == 6000.0
