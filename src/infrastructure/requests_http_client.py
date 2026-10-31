@@ -18,6 +18,14 @@ class RequestsHTTPClient(HTTPRequestor):
     Может быть подменён на мок при тестировании.
     """
 
+    def __init__(self):
+        """
+        Инициализация HTTP-клиента с заголовками по умолчанию.
+
+        Nominatim API требует заголовок User-Agent.
+        """
+        self._headers = {"User-Agent": "FlightTracker/1.0 (coursework)"}
+
     def get(self, url: str, params: Optional[Dict[str, Any]] = None, timeout: float = 10.0) -> dict:
         """
         Выполнить GET-запрос через requests.
@@ -34,6 +42,6 @@ class RequestsHTTPClient(HTTPRequestor):
             requests.exceptions.RequestException: При ошибке сетевого запроса.
             ValueError: При некорректном формате ответа.
         """
-        response = requests.get(url, params=params, timeout=timeout)
+        response = requests.get(url, params=params, headers=self._headers, timeout=timeout)
         response.raise_for_status()
         return response.json()
