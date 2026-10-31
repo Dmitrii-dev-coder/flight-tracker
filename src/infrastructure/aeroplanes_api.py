@@ -148,6 +148,9 @@ class AeroplanesAPI(APIConnector):
             longitude = state[5]
             latitude = state[6]
 
+            if longitude is None or latitude is None:
+                continue
+
             if (min_lon <= longitude <= max_lon
                     and min_lat <= latitude <= max_lat):
                 filtered.append(state)

@@ -147,6 +147,37 @@ def test_get_aeroplanes_filters_by_bbox():
     assert result[0][0] == "plane2"
 
 
+# Тест 009: Проверка что самолёты с None координатами пропускаются.
+def test_get_aeroplanes_skips_none_coordinates():
+    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+    from unittest.mock import patch, MagicMock
+
+    mock_nominatim = MagicMock()
+    mock_nominatim.status_code = 200
+    mock_nominatim.json.return_value = [{
+        "name": "Spain",
+        "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]
+    }]
+
+    mock_opensky = MagicMock()
+    mock_opensky.status_code = 200
+    mock_opensky.json.return_value = {
+        "time": 1234567890,
+        "states": [
+            # Самолёт с None координатами
+            ["p1", "FLT1", "Spain", 0, 0, None, None, 5000.0, False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
+            # Самолёт с валидными координатами
+            ["p2", "FLT2", "Spain", 0, 0, 1.0, 41.0, 8000.0, False, 250.0, 90.0, 0.0, None, 8000.0, "0000", False, 0]
+        ]
+    }
+
+    with patch("src.infrastructure.aeroplanes_api.requests.get", side_effect=[mock_nominatim, mock_opensky]):
+        api = AeroplanesAPI()
+        result = api.get_aeroplanes("Spain")
+        assert len(result) == 1
+        assert result[0][1] == "FLT2"
+
+
 # Тест 008: Проверка что make_request обрабатывает неверный JSON.
 def test_make_request_handles_invalid_json():
     from src.infrastructure.aeroplanes_api import AeroplanesAPI
