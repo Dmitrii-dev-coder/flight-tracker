@@ -12,6 +12,7 @@ from src.infrastructure.aeroplanes_api import AeroplanesAPI
 from src.application.aeroplane import Aeroplane
 from src.infrastructure.json_saver import JSONSaver
 from src.application.user_interface import user_interaction
+from src.application.country_normalizer import normalize_country
 
 
 def main():
@@ -33,8 +34,17 @@ def main():
         print("Ошибка: название страны не может быть пустым")
         return
 
+    # Нормализация названия страны
+    normalized = normalize_country(country)
+    if not normalized:
+        print(f"Страна '{country}' не распознана")
+        return
+
+    if country != normalized:
+        print(f"Распознано: {country} → {normalized}\n")
+
     # Получение данных о самолётах
-    print(f"\nПолучение данных о самолётах в воздушном пространстве {country}...")
+    print(f"Получение данных о самолётах в воздушном пространстве {normalized}...")
     try:
         aeroplanes_data = api.get_aeroplanes(country)
     except requests.exceptions.RequestException as e:
@@ -43,7 +53,7 @@ def main():
         return
 
     if not aeroplanes_data:
-        print(f"Самолёты в воздушном пространстве {country} не найдены")
+        print(f"Самолёты в воздушном пространстве {normalized} не найдены")
         return
 
     print(f"Найдено {len(aeroplanes_data)} самолётов")
