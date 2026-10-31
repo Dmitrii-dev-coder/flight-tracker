@@ -10,7 +10,7 @@ from src.application.filters import (
     get_top_n,
     print_aeroplanes
 )
-from src.application.country_normalizer import normalize_countries
+from src.application.country_normalizer import normalize_countries, normalize_country
 
 
 def user_interaction(aeroplanes: list):
@@ -45,6 +45,10 @@ def user_interaction(aeroplanes: list):
         if unknown:
             print(f"\nВнимание: страны не распознаны: {', '.join(unknown)}")
         if normalized:
+            # Показываем, как были распознаны названия стран
+            for original, english in zip(filter_words, normalized):
+                if original != english:
+                    print(f"Распознано: {original} → {english}")
             filtered = filter_by_country(aeroplanes, normalized)
             print(f"\n--- Самолёты в стране: {', '.join(normalized)} ---")
             print_aeroplanes(filtered)
