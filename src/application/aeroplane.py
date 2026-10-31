@@ -254,8 +254,12 @@ class Aeroplane(AeroplaneBase):
             if state is None:
                 continue
 
+            callsign = state[1].strip() if state[1] else ""
+            if not callsign:
+                continue
+
             aeroplanes.append(Aeroplane(
-                callsign=state[1].strip() if state[1] else "",
+                callsign=callsign,
                 country=state[2],
                 velocity=state[9] if state[9] is not None else 0.0,
                 altitude=state[7] if state[7] is not None else 0.0,

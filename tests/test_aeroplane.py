@@ -198,3 +198,16 @@ def test_cast_to_object_list_with_none():
     result = Aeroplane.cast_to_object_list(json_data)
     assert len(result) == 1
     assert isinstance(result[0], Aeroplane)
+
+
+# Тест 014: Проверка что самолёты без позывных пропускаются.
+def test_cast_to_object_list_skips_empty_callsign():
+    from src.application.aeroplane import Aeroplane
+    json_data = [
+        ["plane1", "", "Spain", 0, 0, 1.0, 41.0, 5000.0, False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
+        ["plane2", "FLT1", "Spain", 0, 0, 2.0, 42.0, 6000.0, False, 250.0, 90.0, 0.0, None, 6000.0, "0001", False, 0],
+        ["plane3", None, "Spain", 0, 0, 3.0, 43.0, 7000.0, False, 300.0, 180.0, 10.0, None, 7000.0, "0002", False, 0]
+    ]
+    result = Aeroplane.cast_to_object_list(json_data)
+    assert len(result) == 1
+    assert result[0].callsign == "FLT1"
