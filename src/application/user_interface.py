@@ -9,7 +9,7 @@ from src.application.filters import (
     sort_by_altitude_desc,
     get_top_n
 )
-from src.application.country_normalizer import normalize_countries, normalize_country
+from src.application.country_normalizer import normalize_countries, normalize_country, save_translation
 
 
 def print_aeroplanes(aeroplanes: list):
@@ -55,15 +55,29 @@ def user_interaction(aeroplanes: list):
     except ValueError:
         print("Ошибка: введите корректное число для топ N")
 
-    # Вывод списка самолётов
-    print_aeroplanes(aeroplanes)
-
     # Фильтрация по стране
     filter_words = input("\nВведите названия стран для фильтрации (через пробел): ").split()
     if filter_words:
         normalized, unknown = normalize_countries(filter_words)
         if unknown:
             print(f"\nВнимание: страны не распознаны: {', '.join(unknown)}")
+            print("\nРекомендуемые ресурсы для проверки названий:")
+            print("- Wikipedia: Список стран по алфавиту (на русском и английском)")
+            print("- GeoNames: geonames.org (официальные названия на всех языках)")
+            print("- ISO 3166: iso.org (официальный стандарт кодов стран)")
+            print("\nВведите 'y' для добавления в словарь, 'n' для пропуска:")
+            answer = input("> ").strip().lower()
+            if answer == "y":
+                for ru_name in unknown:
+                    en_name = input(f"Введите английское название для '{ru_name}': ").strip()
+                    if en_name:
+                        if save_translation(ru_name, en_name):
+                            print(f"Добавлено: {ru_name} → {en_name}")
+                            # Повторная нормализация для добавленной страны
+                            normalized_en = normalize_country(ru_name)
+                            normalized.append(normalized_en)
+                        else:
+                            print("Ошибка: не удалось сохранить перевод")
         if normalized:
             # Показываем, как были распознаны названия стран
             for original, english in zip(filter_words, normalized):

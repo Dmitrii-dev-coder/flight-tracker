@@ -12,7 +12,39 @@ from src.infrastructure.aeroplanes_api import AeroplanesAPI
 from src.application.aeroplane import Aeroplane
 from src.infrastructure.json_saver import JSONSaver
 from src.application.user_interface import user_interaction
-from src.application.country_normalizer import normalize_country
+from src.application.country_normalizer import normalize_country, save_translation
+
+
+def _handle_unknown_country(country: str) -> bool:
+    """
+    Обработать нераспознанную страну — предложить добавить в словарь.
+
+    Args:
+        country: Название страны которое не удалось распознать.
+
+    Returns:
+        True если страна добавлена в словарь, False если пропущена.
+    """
+    print(f"\nСтрана '{country}' не распознана.")
+    print("\nРекомендуемые ресурсы для проверки названий:")
+    print("- Wikipedia: Список стран по алфавиту (на русском и английском)")
+    print("- GeoNames: geonames.org (официальные названия на всех языках)")
+    print("- ISO 3166: iso.org (официальный стандарт кодов стран)")
+    print("\nВведите 'y' для добавления в словарь, 'n' для пропуска:")
+    answer = input("> ").strip().lower()
+    if answer == "y":
+        en_name = input(f"Введите английское название для '{country}': ").strip()
+        if en_name:
+            if save_translation(country, en_name):
+                print(f"Добавлено: {country} → {en_name}")
+                return True
+            else:
+                print("Ошибка: не удалось сохранить перевод")
+        else:
+            print("Пропуск: английское название не введено")
+    else:
+        print("Пропуск")
+    return False
 
 
 def main():
@@ -47,6 +79,21 @@ def main():
     print(f"Получение данных о самолётах в воздушном пространстве {normalized}...")
     try:
         aeroplanes_data = api.get_aeroplanes(country)
+    except ValueError as e:
+        print(f"Ошибка: {e}")
+        # Предложить добавить страну в словарь
+        if _handle_unknown_country(country):
+            # Повторная попытка после добавления
+            normalized = normalize_country(country)
+            print(f"\nПовторная попытка с {normalized}...")
+            try:
+                aeroplanes_data = api.get_aeroplanes(normalized)
+            except (ValueError, requests.exceptions.RequestException) as e2:
+                print(f"Ошибка: {e2}")
+                return
+        else:
+            print("Проверьте название страны и попробуйте снова")
+            return
     except requests.exceptions.RequestException as e:
         print(f"Ошибка подключения к API: {e}")
         print("Проверьте подключение к интернету и попробуйте снова")
