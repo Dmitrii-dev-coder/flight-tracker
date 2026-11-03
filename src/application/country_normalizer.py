@@ -137,7 +137,7 @@ def normalize_country(name: str) -> str:
     if normalized in user_dict:
         return user_dict[normalized]
 
-    # Затем ищем в встроенном словаре рус->англ
+    # Затем ищем во встроенном словаре рус->англ
     if normalized in RU_TO_EN:
         return RU_TO_EN[normalized]
 
@@ -145,7 +145,7 @@ def normalize_country(name: str) -> str:
     try:
         result = pycountry.countries.search_fuzzy(normalized)
         if result:
-            return result[0].name
+            return result[0].name  # type: ignore
     except (AttributeError, LookupError):
         pass
 
@@ -155,6 +155,9 @@ def normalize_country(name: str) -> str:
 def normalize_countries(names: List[str]) -> Tuple[List[str], List[str]]:
     """
     Нормализовать список названий стран.
+
+    Если название на русском языке не распознано и вернулось без изменений,
+    оно считается нераспознанным и попадает в список unknown.
 
     Args:
         names: Список названий стран для нормализации.
@@ -167,9 +170,14 @@ def normalize_countries(names: List[str]) -> Tuple[List[str], List[str]]:
 
     for name in names:
         result = normalize_country(name)
-        if result:
+        original_stripped = name.strip()
+
+        # Если результат совпадает с оригиналом и это кириллица — страна не распознана
+        if result == original_stripped and any('\u0400' <= c <= '\u04FF' for c in original_stripped):
+            unknown.append(original_stripped)
+        elif result:
             normalized.append(result)
         else:
-            unknown.append(name.strip())
+            unknown.append(original_stripped)
 
     return normalized, unknown

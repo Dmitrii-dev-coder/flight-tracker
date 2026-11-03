@@ -62,6 +62,103 @@ class Aeroplane(AeroplaneBase):
 
         self._validate()
 
+    # --- Магические методы сравнения (AeroplaneComparable) ---
+
+    def __lt__(self, other):
+        """
+        Сравнить по скорости (возрастание).
+
+        Args:
+            other: Другой объект Aeroplane.
+
+        Returns:
+            True если скорость текущего меньше скорости другого.
+        """
+        if not isinstance(other, Aeroplane):
+            return NotImplemented
+        return self._velocity < other._velocity
+
+    def __gt__(self, other):
+        """
+        Сравнить по скорости (убывание).
+
+        Args:
+            other: Другой объект Aeroplane.
+
+        Returns:
+            True если скорость текущего больше скорости другого.
+        """
+        if not isinstance(other, Aeroplane):
+            return NotImplemented
+        return self._velocity > other._velocity
+
+    def __le__(self, other):
+        """
+        Сравнить по скорости (<=).
+
+        Args:
+            other: Другой объект Aeroplane.
+
+        Returns:
+            True если скорость текущего меньше или равна.
+        """
+        if not isinstance(other, Aeroplane):
+            return NotImplemented
+        return self._velocity <= other._velocity
+
+    def __ge__(self, other):
+        """
+        Сравнить по скорости (>=).
+
+        Args:
+            other: Другой объект Aeroplane.
+
+        Returns:
+            True если скорость текущего больше или равна.
+        """
+        if not isinstance(other, Aeroplane):
+            return NotImplemented
+        return self._velocity >= other._velocity
+
+    def __eq__(self, other):
+        """
+        Сравнить два самолёта по-позывному.
+
+        Args:
+            other: Другой объект Aeroplane.
+
+        Returns:
+            True если позывные совпадают, NotImplemented если тип несовместим.
+        """
+        if not isinstance(other, Aeroplane):
+            return NotImplemented
+        return self._callsign == other._callsign
+
+    def __str__(self):
+        """
+        Получить человекочитаемое представление самолёта.
+
+        Returns:
+            Строка с основными данными о самолёте.
+        """
+        return (f"Aeroplane(callsign={self._callsign}, country={self._country}, "
+                f"velocity={self._velocity}, altitude={self._altitude})")
+
+    def __repr__(self):
+        """
+        Получить детальное представление самолёта.
+
+        Returns:
+            Строка с полным описанием объекта.
+        """
+        return (f"Aeroplane(callsign='{self._callsign}', country='{self._country}', "
+                f"velocity={self._velocity}, altitude={self._altitude}, "
+                f"latitude={self._latitude}, longitude={self._longitude}, "
+                f"on_ground={self._on_ground}, geo_altitude={self._geo_altitude}, "
+                f"vertical_rate={self._vertical_rate}, true_track={self._true_track})")
+
+    # --- Валидация ---
+
     def _validate(self):
         """
         Валидация входных данных.
@@ -132,103 +229,6 @@ class Aeroplane(AeroplaneBase):
     def true_track(self) -> float:
         """Получить курс (градусы)."""
         return self._true_track
-
-    # --- Реализация абстрактных методов AeroplaneComparable ---
-
-    def __lt__(self, other):
-        """
-        Сравнить по скорости (возрастание).
-
-        Args:
-            other: Другой объект Aeroplane.
-
-        Returns:
-            True если скорость текущего меньше скорости другого.
-        """
-        if not isinstance(other, Aeroplane):
-            return NotImplemented
-        return self._velocity < other._velocity
-
-    def __gt__(self, other):
-        """
-        Сравнить по скорости (убывание).
-
-        Args:
-            other: Другой объект Aeroplane.
-
-        Returns:
-            True если скорость текущего больше скорости другого.
-        """
-        if not isinstance(other, Aeroplane):
-            return NotImplemented
-        return self._velocity > other._velocity
-
-    def __le__(self, other):
-        """
-        Сравнить по скорости (<=).
-
-        Args:
-            other: Другой объект Aeroplane.
-
-        Returns:
-            True если скорость текущего меньше или равна.
-        """
-        if not isinstance(other, Aeroplane):
-            return NotImplemented
-        return self._velocity <= other._velocity
-
-    def __ge__(self, other):
-        """
-        Сравнить по скорости (>=).
-
-        Args:
-            other: Другой объект Aeroplane.
-
-        Returns:
-            True если скорость текущего больше или равна.
-        """
-        if not isinstance(other, Aeroplane):
-            return NotImplemented
-        return self._velocity >= other._velocity
-
-    def __eq__(self, other):
-        """
-        Сравнить два самолёта по позывному.
-
-        Args:
-            other: Другой объект Aeroplane.
-
-        Returns:
-            True если позывные совпадают, NotImplemented если тип несовместим.
-        """
-        if not isinstance(other, Aeroplane):
-            return NotImplemented
-        return self._callsign == other._callsign
-
-    # --- Магические методы представления ---
-
-    def __str__(self):
-        """
-        Получить человекочитаемое представление самолёта.
-
-        Returns:
-            Строка с основными данными о самолёте.
-        """
-        return (f"Aeroplane(callsign={self._callsign}, country={self._country}, "
-                f"velocity={self._velocity}, altitude={self._altitude})")
-
-    def __repr__(self):
-        """
-        Получить детальное представление самолёта.
-
-        Returns:
-            Строка с полным описанием объекта.
-        """
-        return (f"Aeroplane(callsign='{self._callsign}', country='{self._country}', "
-                f"velocity={self._velocity}, altitude={self._altitude}, "
-                f"latitude={self._latitude}, longitude={self._longitude}, "
-                f"on_ground={self._on_ground}, geo_altitude={self._geo_altitude}, "
-                f"vertical_rate={self._vertical_rate}, true_track={self._true_track})")
 
     # --- Сериализация ---
 

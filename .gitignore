@@ -226,3 +226,9 @@ test_log_example.txt
 .gigaide/
 instructions.md
 backup_gigacode/
+
+# Сгенерированные данные
+# Локальные данные о самолётах (генерируются при запуске)
+data/aeroplanes.json
+# Пользовательский словарь переводов стран
+data/country_translations.json

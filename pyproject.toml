@@ -35,4 +35,4 @@ fail_under = 70
 
 [tool.flake8]
 max-line-length = 119
-ignore = ["E501", "W503"]
+ignore = ["W503"]

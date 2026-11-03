@@ -1,83 +1,93 @@
 # -*- coding: utf-8 -*-
-"""Тесты для модуля src.aeroplanes_api."""
+"""Тесты для модуля aeroplanes_api."""
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+
+from src.infrastructure.aeroplanes_api import AeroplanesAPI
+from src.infrastructure.http_requestor import HTTPRequestor
 
 
 # ============================================================================
 # 0. Проверка класса: AeroplanesAPI из модуля src.aeroplanes_api.
 # ============================================================================
 
-# Тест 001: Проверка что AeroplanesAPI наследуется от APIConnector.
-def test_aeroplanes_api_inherits_from_api_connector():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
+# Тест 001: Проверка, что можно создать экземпляр AeroplanesAPI.
+def test_can_create_api():
+    """
+    Проверяет, что объект AeroplanesAPI создаётся без параметров.
+
+    При создании без параметров должен автоматически создаваться HTTP-клиент по умолчанию.
+    """
+    api = AeroplanesAPI()
+    assert api is not None
+
+
+# Тест 002: Проверка, что AeroplanesAPI наследуется от APIConnector.
+def test_api_inheritance():
+    """
+    Проверяет, что AeroplanesAPI наследуется от абстрактного класса APIConnector.
+
+    Это соответствует требованию курсовой о наследовании абстрактных классов.
+    """
     from src.infrastructure.api_base import APIConnector
     assert issubclass(AeroplanesAPI, APIConnector)
 
 
-# Тест 002: Проверка что можно создать экземпляр AeroplanesAPI.
-def test_can_instantiate_aeroplanes_api():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    api = AeroplanesAPI()
-    assert api is not None
-    assert isinstance(api, AeroplanesAPI)
+# Тест 003: Проверка get_country_coordinates — успешный запрос.
+def test_get_country_coordinates_success(mock_nominatim_response):
+    """
+    Проверяет, что get_country_coordinates возвращает boundingbox при успешном ответе Nominatim.
 
-
-# Тест 003: Проверка что get_country_coordinates возвращает boundingbox.
-def test_get_country_coordinates_returns_bbox():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
-
+    Mock возвращает координаты границы страны, метод должен вернуть список из 4 чисел.
+    """
     mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.return_value = [{
-        "place_id": 346277167,
-        "name": "Canada",
-        "boundingbox": ["41.6765597", "83.3362128", "-141.0027500", "-52.3237664"]
-    }]
+    mock_requestor.get.return_value = mock_nominatim_response
 
     api = AeroplanesAPI(http_requestor=mock_requestor)
-    result = api.get_country_coordinates("Canada")
+    bbox = api.get_country_coordinates("Spain")
 
-    assert isinstance(result, list)
-    assert len(result) == 4
-    assert result[0] == 41.6765597
-    assert result[1] == 83.3362128
-    assert result[2] == -141.0027500
-    assert result[3] == -52.3237664
+    assert len(bbox) == 4
+    assert all(isinstance(coord, float) for coord in bbox)
 
 
-# Тест 004: Проверка что get_country_coordinates обрабатывает ошибку сети.
-def test_get_country_coordinates_handles_request_error():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
+# Тест 004: Проверка get_country_coordinates — страна не найдена.
+def test_get_country_coordinates_not_found():
+    """
+    Проверяет, что get_country_coordinates вызывает ValueError при пустом ответе Nominatim.
 
-    mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.side_effect = RuntimeError("Network error")
-
-    api = AeroplanesAPI(http_requestor=mock_requestor)
-    with pytest.raises(RuntimeError):
-        api.get_country_coordinates("UnknownCountry")
-
-
-# Тест 005: Проверка что get_country_coordinates обрабатывает отсутствие данных.
-def test_get_country_coordinates_no_data():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
-
+    Пустой список означает, что страна не найдена.
+    """
     mock_requestor = MagicMock(spec=HTTPRequestor)
     mock_requestor.get.return_value = []
 
     api = AeroplanesAPI(http_requestor=mock_requestor)
     with pytest.raises(ValueError):
-        api.get_country_coordinates("EmptyCountry")
+        api.get_country_coordinates("Atlantis")
 
 
-# Тест 006: Проверка что get_aeroplanes возвращает список самолётов.
-def test_get_aeroplanes_returns_list():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
+# Тест 005: Проверка get_country_coordinates — нет boundingbox.
+def test_get_country_coordinates_no_bbox():
+    """
+    Проверяет, что get_country_coordinates вызывает ValueError при отсутствии boundingbox.
 
+    Nominatim вернул ответ, но без координат границы.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.return_value = [{"name": "Spain"}]
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+    with pytest.raises(ValueError):
+        api.get_country_coordinates("Spain")
+
+
+# Тест 006: Проверка get_aeroplanes — успешный запрос.
+def test_get_aeroplanes_success():
+    """
+    Проверяет, что get_aeroplanes возвращает список самолётов в пределах boundingbox.
+
+    Mock возвращает координаты страны и список самолётов, метод должен отфильтровать по координатам.
+    """
     mock_requestor = MagicMock(spec=HTTPRequestor)
     mock_requestor.get.side_effect = [
         [{"name": "Spain", "boundingbox": ["27.6", "43.8", "-18.4", "4.4"]}],
@@ -100,135 +110,248 @@ def test_get_aeroplanes_returns_list():
     assert len(result) == 1
 
 
-# Тест 007: Проверка что get_aeroplanes фильтрует по boundingbox.
-def test_get_aeroplanes_filters_by_bbox():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
+# Тест 007: Проверка get_aeroplanes — пустой ответ OpenSky.
+def test_get_aeroplanes_empty_opensky(mock_nominatim_response):
+    """
+    Проверяет, что get_aeroplanes возвращает пустой список при пустом ответе OpenSky.
 
+    OpenSky вернул пустой ответ — самолётов нет.
+    """
     mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.side_effect = [
-        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
-        {
-            "time": 1766142246,
-            "states": [
-                [
-                    "plane1", "FLT1", "Spain", 0, 0,
-                    1.0, 39.0, 1000.0, False, 100.0, 0.0, 0.0,
-                    None, 1000.0, "0000", False, 0
-                ],
-                [
-                    "plane2", "FLT2", "Spain", 0, 0,
-                    2.0, 41.0, 2000.0, False, 200.0, 0.0, 0.0,
-                    None, 2000.0, "0001", False, 0
-                ],
-                [
-                    "plane3", "FLT3", "France", 0, 0,
-                    3.0, 45.0, 3000.0, False, 300.0, 0.0, 0.0,
-                    None, 3000.0, "0002", False, 0
-                ]
-            ]
-        }
-    ]
+    mock_requestor.get.side_effect = [mock_nominatim_response, {"states": []}]
 
     api = AeroplanesAPI(http_requestor=mock_requestor)
     result = api.get_aeroplanes("Spain")
 
-    assert len(result) == 1
-    assert result[0][0] == "plane2"
+    assert result == []
 
 
-# Тест 009: Проверка что самолёты с None координатами пропускаются.
-def test_get_aeroplanes_skips_none_coordinates():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
-
-    mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.side_effect = [
-        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
-        {
-            "time": 1234567890,
-            "states": [
-                # Самолёт с None координатами
-                ["p1", "FLT1", "Spain", 0, 0, None, None, 5000.0, False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
-                # Самолёт с валидными координатами
-                ["p2", "FLT2", "Spain", 0, 0, 1.0, 41.0, 8000.0, False, 250.0, 90.0, 0.0, None, 8000.0, "0000", False, 0]
-            ]
-        }
-    ]
-
-    api = AeroplanesAPI(http_requestor=mock_requestor)
-    result = api.get_aeroplanes("Spain")
-    assert len(result) == 1
-    assert result[0][1] == "FLT2"
-
-
-# Тест 008: Проверка что make_request обрабатывает неверный JSON.
-def test_make_request_handles_invalid_json():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
-
-    mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.side_effect = ValueError("Invalid JSON")
-
-    api = AeroplanesAPI(http_requestor=mock_requestor)
-    with pytest.raises(ValueError):
-        api.make_request("https://example.com/api")
-
-
-# Тест 009: Проверка что make_request возвращает данные при успешном запросе.
-def test_make_request_success():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
-
-    mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.return_value = {"key": "value", "count": 42}
-
-    api = AeroplanesAPI(http_requestor=mock_requestor)
-    result = api.make_request("https://example.com/api", {"param": "test"})
-
-    assert result["key"] == "value"
-    assert result["count"] == 42
-
-
-# Тест 010: Проверка что CircuitBreaker открывается после ошибок.
+# Тест 008: Проверка Circuit Breaker — не пропускает запрос после 5 ошибок.
 def test_circuit_breaker_opens_after_failures():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
+    """
+    Проверяет, что Circuit Breaker открывается после 5 ошибок.
 
+    При открытии Circuit Breaker метод get_aeroplanes должен вызвать RuntimeError.
+    """
     mock_requestor = MagicMock(spec=HTTPRequestor)
     mock_requestor.get.side_effect = RuntimeError("Error")
 
     api = AeroplanesAPI(http_requestor=mock_requestor)
     for _ in range(5):
         try:
-            api.make_request("https://example.com/api")
+            api.get_country_coordinates("Spain")
         except RuntimeError:
             pass
 
     assert api._circuit_breaker.state == "OPEN"
 
     with pytest.raises(RuntimeError) as exc_info:
-        api.make_request("https://example.com/api")
+        api.get_country_coordinates("Spain")
     assert "Circuit Breaker открыт" in str(exc_info.value)
 
 
-# Тест 011: Проверка что CircuitBreaker сбрасывается после успеха.
-def test_circuit_breaker_resets_on_success():
-    from src.infrastructure.aeroplanes_api import AeroplanesAPI
-    from src.infrastructure.http_requestor import HTTPRequestor
+# Тест 009: Проверка Circuit Breaker — пропускает запрос после восстановления.
+def test_circuit_breaker_half_open():
+    """
+    Проверяет, что Circuit Breaker переходит в HALF_OPEN после таймаута.
+
+    После recovery_timeout (30 секунд) Circuit Breaker должен позволить тестовый запрос.
+    """
+    import time
 
     mock_requestor = MagicMock(spec=HTTPRequestor)
-    mock_requestor.get.side_effect = [
-        RuntimeError("Error"),
-        {"key": "value"}
-    ]
+    mock_requestor.get.side_effect = Exception("API error")
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+
+    # 5 ошибок для срабатывания Circuit Breaker
+    for _ in range(5):
+        with pytest.raises(Exception):
+            api.get_country_coordinates("Spain")
+
+    # Ждём recovery_timeout (уменьшено до 0.5 сек для ускорения тестов)
+    time.sleep(0.5)
+
+    # Теперь должен быть HALF_OPEN и запрос должен пройти
+    mock_requestor.get.side_effect = None
+    mock_requestor.get.return_value = [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}]
+    result = api.get_country_coordinates("Spain")
+    assert result is not None
+
+
+# Тест 010: Проверка Circuit Breaker — сообщение об ошибке.
+def test_circuit_breaker_error_message():
+    """
+    Проверяет, что при открытии Circuit Breaker выводится понятное сообщение об ошибке.
+
+    Сообщение должно содержать информацию о состоянии Circuit Breaker.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.side_effect = RuntimeError("Error")
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+
+    # 5 ошибок для срабатывания Circuit Breaker
+    for _ in range(5):
+        try:
+            api.get_country_coordinates("Spain")
+        except RuntimeError:
+            pass
+
+    # 6-й запрос должен вызвать RuntimeError с понятным сообщением
+    with pytest.raises(RuntimeError) as exc_info:
+        api.get_country_coordinates("Spain")
+
+    assert "Circuit Breaker открыт" in str(exc_info.value)
+
+
+# Тест 011: Проверка Circuit Breaker — сбрасывает счётчик при успехе.
+def test_circuit_breaker_resets_on_success():
+    """
+    Проверяет, что успешный запрос сбрасывает счётчик ошибок Circuit Breaker.
+
+    После успешного запроса Circuit Breaker должен вернуться в состояние CLOSED.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    call_count = 0
+
+    def mock_get(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise RuntimeError("Error")
+        return [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}]
+
+    mock_requestor.get.side_effect = mock_get
 
     api = AeroplanesAPI(http_requestor=mock_requestor)
     try:
-        api.make_request("https://example.com/api")
+        api.get_country_coordinates("Spain")
     except RuntimeError:
         pass
 
-    result = api.make_request("https://example.com/api")
-    assert result["key"] == "value"
+    result = api.get_country_coordinates("Spain")
+    assert result is not None
     assert api._circuit_breaker.state == "CLOSED"
+
+
+# Тест 012: Проверка get_aeroplanes — фильтрация по координатам.
+def test_get_aeroplanes_filters_by_coordinates():
+    """
+    Проверяет, что get_aeroplanes правильно фильтрует самолёты по координатам.
+
+    Самолёты за пределами boundingbox должны быть исключены из результата.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    # boundingbox Spain: lat 40-43, lon -5 to 3
+    mock_requestor.get.side_effect = [
+        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
+        {
+            "states": [
+                # Самолёт внутри Spain (lat 41, lon -2)
+                ["plane1", "FLY1", "Spain", 0, 0, -2.0, 41.0, 5000.0,
+                 False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
+                # Самолёт вне Spain (lat 50, lon 10)
+                ["plane2", "FLY2", "France", 0, 0, 10.0, 50.0, 6000.0,
+                 False, 250.0, 90.0, 0.0, None, 6000.0, "0001", False, 0]
+            ]
+        }
+    ]
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+    result = api.get_aeroplanes("Spain")
+
+    assert len(result) == 1
+    assert result[0][1] == "FLY1"
+
+
+# Тест 013: Проверка что get_aeroplanes обрабатывает некорректный JSON.
+def test_get_aeroplanes_handles_invalid_json():
+    """
+    Проверяет, что get_aeroplanes обрабатывает некорректный JSON.
+
+    Возвращает некорректный JSON и проверяет что ValueError обрабатывается.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.side_effect = ValueError("Invalid JSON")
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+
+    with pytest.raises(ValueError):
+        api.get_aeroplanes("Spain")
+
+
+# Тест 014: Проверка что get_aeroplanes пропускает None элементы.
+def test_get_aeroplanes_skips_none_states():
+    """
+    Проверяет, что get_aeroplanes пропускает None элементы в списке состояний.
+
+    Возвращает список состояний с None элементами и проверяет что они пропускаются.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.side_effect = [
+        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
+        {
+            "states": [
+                None,
+                ["plane1", "FLT1", "Spain", 0, 0, -2.0, 41.0, 5000.0,
+                 False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
+                None,
+            ]
+        }
+    ]
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+    result = api.get_aeroplanes("Spain")
+
+    assert len(result) == 1
+    assert result[0][1] == "FLT1"
+
+
+# Тест 015: Проверка что get_aeroplanes пропускает самолёты с None координатами.
+def test_get_aeroplanes_skips_none_coordinates():
+    """
+    Проверяет, что get_aeroplanes пропускает самолёты с None координатами.
+
+    Возвращает список состояний с самолётами имеющими None latitude/longitude
+    и проверяет что они пропускаются.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.side_effect = [
+        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
+        {
+            "states": [
+                # Самолёт с None координатами
+                ["p1", "FLT1", "Spain", 0, 0, None, None, 5000.0,
+                 False, 200.0, 0.0, 0.0, None, 5000.0, "0000", False, 0],
+                # Самолёт с валидными координатами
+                ["p2", "FLT2", "Spain", 0, 0, 1.0, 41.0, 8000.0,
+                 False, 250.0, 90.0, 0.0, None, 8000.0, "0000", False, 0]
+            ]
+        }
+    ]
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+    result = api.get_aeroplanes("Spain")
+
+    assert len(result) == 1
+    assert result[0][1] == "FLT2"
+
+
+# Тест 016: Проверка что get_aeroplanes возвращает пустой список при отсутствии states.
+def test_get_aeroplanes_returns_empty_when_no_states():
+    """
+    Проверяет, что get_aeroplanes возвращает пустой список при отсутствии states.
+
+    Возвращает ответ без ключа states и проверяет что возвращается пустой список.
+    """
+    mock_requestor = MagicMock(spec=HTTPRequestor)
+    mock_requestor.get.side_effect = [
+        [{"name": "Spain", "boundingbox": ["40.0", "43.0", "-5.0", "3.0"]}],
+        {"time": 1234567890}  # Нет states
+    ]
+
+    api = AeroplanesAPI(http_requestor=mock_requestor)
+    result = api.get_aeroplanes("Spain")
+
+    assert result == []

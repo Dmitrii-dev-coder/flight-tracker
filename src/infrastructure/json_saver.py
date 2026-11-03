@@ -5,7 +5,7 @@
 
 import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from src.infrastructure.file_connector import FileConnector
 from src.application.aeroplane_data import AeroplaneData
 
@@ -28,6 +28,11 @@ class JSONSaver(FileConnector):
         """
         self._filepath = filepath
         self._ensure_file_exists()
+
+    @property
+    def filepath(self) -> str:
+        """Получить путь к JSON-файлу."""
+        return self._filepath
 
     def _ensure_file_exists(self):
         """Создать файл, если он не существует."""

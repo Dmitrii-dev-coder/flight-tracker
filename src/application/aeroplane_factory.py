@@ -6,7 +6,7 @@
 выносит логику преобразования JSON в объекты из класса Aeroplane.
 """
 
-from typing import Any, Dict, List
+from typing import Any, List
 
 from src.application.aeroplane import Aeroplane
 
@@ -53,6 +53,11 @@ class AeroplaneFactory:
             if altitude < 0:
                 altitude = 0.0
 
+            # Отрицательное значение geo_altitude означает "недоступно" (специальное значение opensky)
+            geo_altitude = state[13] if state[13] is not None else 0.0
+            if geo_altitude < 0:
+                geo_altitude = 0.0
+
             aeroplanes.append(Aeroplane(
                 callsign=callsign,
                 country=state[2],
@@ -61,7 +66,7 @@ class AeroplaneFactory:
                 latitude=state[6] if state[6] is not None else 0.0,
                 longitude=state[5] if state[5] is not None else 0.0,
                 on_ground=state[8] if state[8] is not None else False,
-                geo_altitude=state[13] if state[13] is not None else 0.0,
+                geo_altitude=geo_altitude,
                 vertical_rate=state[11] if state[11] is not None else 0.0,
                 true_track=state[10] if state[10] is not None else 0.0
             ))

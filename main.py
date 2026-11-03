@@ -113,7 +113,7 @@ def main():
     json_saver = JSONSaver()
     for plane in aeroplanes:
         json_saver.add_aeroplane(plane)
-    print(f"Данные сохранены в {json_saver._filepath}\n")
+    print(f"Данные сохранены в {json_saver.filepath}\n")
 
     # Запуск пользовательского интерфейса
     user_interaction(aeroplanes)

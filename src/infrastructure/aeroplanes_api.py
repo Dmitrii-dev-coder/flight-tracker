@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Модуль содержит класс для работы с API opensky-network.org.
+Модуль содержит класс для работы с API nominatim.openstreetmap.org и opensky-network.org.
 """
 
 from typing import Any, Dict, Optional
@@ -37,7 +37,8 @@ class AeroplanesAPI(APIConnector):
         self.opensky_url = "https://opensky-network.org/api/states/all"
         self._circuit_breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=30.0)
 
-    def _create_default_requestor(self) -> HTTPRequestor:
+    @staticmethod
+    def _create_default_requestor() -> HTTPRequestor:
         """
         Создать HTTP-клиент по умолчанию.
 
@@ -120,9 +121,9 @@ class AeroplanesAPI(APIConnector):
 
         return [float(coord) for coord in boundingbox]
 
-    def get_aeroplanes(self, country: str) -> list:
+    def __get_aeroplanes(self, country: str) -> list:
         """
-        Получить информацию о самолётах в воздушном пространстве страны.
+        Приватный метод получения информации о самолётах.
 
         Получает boundingbox страны, затем запрашивает все самолёты
         из opensky-network.org и фильтрует по координатам.
@@ -167,3 +168,18 @@ class AeroplanesAPI(APIConnector):
                 filtered.append(state)
 
         return filtered
+
+    def get_aeroplanes(self, country: str) -> list:
+        """
+        Получить информацию о самолётах в воздушном пространстве страны.
+
+        Публичная обёртка над приватным методом __get_aeroplanes.
+        Единственная точка входа для внешнего кода.
+
+        Args:
+            country: Название страны на английском языке.
+
+        Returns:
+            Список словарей с данными о самолётах в пределах страны.
+        """
+        return self.__get_aeroplanes(country)
