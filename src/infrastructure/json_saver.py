@@ -7,7 +7,6 @@ import json
 import os
 from typing import Any, Dict
 from src.infrastructure.file_connector import FileConnector
-from src.application.aeroplane_data import AeroplaneData
 
 
 class JSONSaver(FileConnector):
@@ -175,7 +174,7 @@ class JSONSaver(FileConnector):
 
         return aeroplanes
 
-    def _dict_to_aeroplane(self, data: Dict[str, Any]) -> AeroplaneData:
+    def _dict_to_aeroplane(self, data: Dict[str, Any]) -> Any:
         """
         Преобразовать словарь данных в объект Aeroplane.
 
@@ -183,7 +182,7 @@ class JSONSaver(FileConnector):
             data: Словарь с данными о самолёте.
 
         Returns:
-            Объект AeroplaneData.
+            Объект Aeroplane.
 
         Raises:
             ValueError: Если данные некорректны.

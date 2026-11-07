@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Модуль содержит класс для работы с информацией о самолётах.
+Модуль содержит класс Aeroplane для хранения и обработки информации о самолёте.
 """
 
-from src.application.aeroplane_base import AeroplaneBase
 
-
-class Aeroplane(AeroplaneBase):
+class Aeroplane:
     """
     Класс для хранения и обработки информации о самолёте.
 
-    Наследуется от AeroplaneBase, который в свою очередь
-    наследуется от AeroplaneData (данные) и AeroplaneComparable (сравнение).
-
     Инкапсулирует данные о самолёте: позывной, страну регистрации,
     скорость, высоту и другие параметры. Поддерживает сравнение
-    по скорости и высоте, валидацию входных данных.
+    по скорости и высоте, валидацию входных данных и сериализацию из JSON.
     """
 
     def __init__(
@@ -62,7 +57,7 @@ class Aeroplane(AeroplaneBase):
 
         self._validate()
 
-    # --- Магические методы сравнения (AeroplaneComparable) ---
+    # --- Магические методы сравнения ---
 
     def __lt__(self, other):
         """
@@ -122,7 +117,7 @@ class Aeroplane(AeroplaneBase):
 
     def __eq__(self, other):
         """
-        Сравнить два самолёта по-позывному.
+        Сравнить два самолёта по позывному.
 
         Args:
             other: Другой объект Aeroplane.
@@ -178,7 +173,7 @@ class Aeroplane(AeroplaneBase):
         if self._geo_altitude < 0:
             raise ValueError(f"Геометрическая высота не может быть отрицательной: {self._geo_altitude}")
 
-    # --- Реализация абстрактных свойств AeroplaneData ---
+    # --- Свойства для доступа к атрибутам ---
 
     @property
     def callsign(self) -> str:
@@ -235,9 +230,10 @@ class Aeroplane(AeroplaneBase):
     @staticmethod
     def cast_to_object_list(json_data: list) -> list:
         """
-        Преобразовать список JSON-данных в список объектов Aeroplane.
+        Преобразовать список JSON-данных (формат OpenSky API) в список объектов Aeroplane.
 
-        Использует AeroplaneFactory для создания объектов.
+        Обрабатывает None-значения, пропускает записи с пустым позывным,
+        заменяет отрицательные altitude/geo_altitude на 0.0.
 
         Args:
             json_data: Список списков с данными о самолётах.
@@ -245,5 +241,29 @@ class Aeroplane(AeroplaneBase):
         Returns:
             Список объектов Aeroplane.
         """
-        from src.application.aeroplane_factory import AeroplaneFactory
-        return AeroplaneFactory.create_from_json(json_data)
+        aeroplanes = []
+        for state in json_data:
+            if state is None:
+                continue
+            callsign = state[1].strip() if state[1] else ""
+            if not callsign:
+                continue
+            altitude = state[7] if state[7] is not None else 0.0
+            if altitude < 0:
+                altitude = 0.0
+            geo_altitude = state[13] if state[13] is not None else 0.0
+            if geo_altitude < 0:
+                geo_altitude = 0.0
+            aeroplanes.append(Aeroplane(
+                callsign=callsign,
+                country=state[2],
+                velocity=state[9] if state[9] is not None else 0.0,
+                altitude=altitude,
+                latitude=state[6] if state[6] is not None else 0.0,
+                longitude=state[5] if state[5] is not None else 0.0,
+                on_ground=state[8] if state[8] is not None else False,
+                geo_altitude=geo_altitude,
+                vertical_rate=state[11] if state[11] is not None else 0.0,
+                true_track=state[10] if state[10] is not None else 0.0
+            ))
+        return aeroplanes
