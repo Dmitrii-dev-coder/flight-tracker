@@ -14,7 +14,6 @@ Python-приложение для сбора и анализа данных о 
 - [Структура проекта](#структура-проекта)
 - [Основные классы](#основные-классы)
   - [Aeroplane](#aeroplane-srcapplicationaeroplanepy)
-  - [AeroplaneBase](#aeroplanebasesrcapplicationaeroplane_basepy)
   - [AeroplanesAPI](#aeroplanesapisrcinfrastructureaeroplanes_apipy)
   - [CircuitBreaker](#circuitbreakersrcinfrastructureapi_utilsipy)
   - [JSONSaver](#jsonsaversrcinfrastructurejson_saveripy)
@@ -92,7 +91,7 @@ flight_tracker/
 │       ├── json_saver.py        # Сохранение в JSON
 │       ├── csv_saver.py         # Заглушка CSV
 │       └── txt_saver.py         # Заглушка TXT
-├── tests/                   # Тесты (181 тест, покрытие ≥70%)
+├── tests/                   # Тесты (171 тест, покрытие ≥70%)
 │   ├── test_aeroplane.py
 │   ├── test_aeroplane_comparison.py
 │   ├── test_aeroplanes_api.py
