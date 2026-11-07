@@ -1,5 +1,7 @@
 # Трекер самолётов
 
+**Версия:** 0.1.0 | **Дата создания:** 2026-11-03
+
 Python-приложение для сбора и анализа данных о самолётах в воздушных пространствах выбранных стран через внешние API.
 
 ## Содержание
@@ -12,7 +14,6 @@ Python-приложение для сбора и анализа данных о 
 - [Структура проекта](#структура-проекта)
 - [Основные классы](#основные-классы)
   - [Aeroplane](#aeroplane-srcapplicationaeroplanepy)
-  - [AeroplaneBase](#aeroplanebasesrcapplicationaeroplane_basepy)
   - [AeroplanesAPI](#aeroplanesapisrcinfrastructureaeroplanes_apipy)
   - [CircuitBreaker](#circuitbreakersrcinfrastructureapi_utilsipy)
   - [JSONSaver](#jsonsaversrcinfrastructurejson_saveripy)
@@ -77,9 +78,6 @@ flight_tracker/
 ├── src/                     # Исходный код
 │   ├── application/         # Бизнес-логика
 │   │   ├── aeroplane.py         # Класс самолёта
-│   │   ├── aeroplane_base.py    # Абстрактный базовый класс
-│   │   ├── aeroplane_data.py    # Абстракция данных (ISP)
-│   │   ├── aeroplane_comparable.py  # Абстракция сравнения (ISP)
 │   │   ├── country_normalizer.py    # Нормализация названий стран
 │   │   ├── filters.py           # Фильтрация и сортировка
 │   │   └── user_interface.py    # Пользовательский интерфейс
@@ -93,7 +91,7 @@ flight_tracker/
 │       ├── json_saver.py        # Сохранение в JSON
 │       ├── csv_saver.py         # Заглушка CSV
 │       └── txt_saver.py         # Заглушка TXT
-├── tests/                   # Тесты (181 тест, покрытие ≥70%)
+├── tests/                   # Тесты (171 тест, покрытие ≥70%)
 │   ├── test_aeroplane.py
 │   ├── test_aeroplane_comparison.py
 │   ├── test_aeroplanes_api.py
@@ -105,7 +103,6 @@ flight_tracker/
 │   ├── test_file_connector.py
 │   ├── test_filters.py
 │   ├── test_integration.py
-│   ├── test_isp_separation.py       # ISP тесты
 │   ├── test_json_saver.py
 │   ├── test_main.py                 # Тесты main.py
 │   ├── test_requests_http_client.py # Тесты HTTP-клиента
@@ -140,15 +137,7 @@ flight_tracker/
 - `cast_to_object_list()` — создание списка объектов из словарей
 - `__lt__()`, `__gt__()`, `__le__()`, `__ge__()` — сравнение по скорости и высоте
 
-**Наследование:** `Aeroplane` → `AeroplaneBase` → `AeroplaneData` + `AeroplaneComparable`
-
-### AeroplaneBase (src/application/aeroplane_base.py)
-
-Абстрактный базовый класс для Aeroplane.
-
-**Методы:**
-- `__init_subclass__()` — регистрация подклассов
-- `__repr__()` — строковое представление
+**Наследование:** `Aeroplane` — самостоятельный класс с инкапсуляцией данных и методов сравнения
 
 ### AeroplanesAPI (src/infrastructure/aeroplanes_api.py)
 
@@ -206,7 +195,6 @@ flight_tracker/
   - SRP — единственная ответственность (каждый класс отвечает за свою область)
   - OCP — открытость/закрытость (расширение без модификации)
   - LSP — подстановка наследников (корректная замена абстракций)
-  - ISP — разделение интерфейсов (AeroplaneData, AeroplaneComparable)
   - DIP — инверсия зависимостей (HTTPRequestor абстракция)
 - **TDD:** тесты написаны до реализации кода
 - **API интеграция:** requests, JSON-ответы, обработка исключений

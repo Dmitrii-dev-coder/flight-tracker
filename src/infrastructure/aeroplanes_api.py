@@ -121,12 +121,12 @@ class AeroplanesAPI(APIConnector):
 
         return [float(coord) for coord in boundingbox]
 
-    def __get_aeroplanes(self, country: str) -> list:
+    def get_aeroplanes(self, country: str) -> list:
         """
-        Приватный метод получения информации о самолётах.
+        Получить информацию о самолётах в воздушном пространстве страны.
 
-        Получает boundingbox страны, затем запрашивает все самолёты
-        из opensky-network.org и фильтрует по координатам.
+        Получает boundingbox страны через Nominatim API, запрашивает
+        все самолёты из OpenSky API и фильтрует по географическим координатам.
 
         Args:
             country: Название страны на английском языке.
@@ -168,18 +168,3 @@ class AeroplanesAPI(APIConnector):
                 filtered.append(state)
 
         return filtered
-
-    def get_aeroplanes(self, country: str) -> list:
-        """
-        Получить информацию о самолётах в воздушном пространстве страны.
-
-        Публичная обёртка над приватным методом __get_aeroplanes.
-        Единственная точка входа для внешнего кода.
-
-        Args:
-            country: Название страны на английском языке.
-
-        Returns:
-            Список словарей с данными о самолётах в пределах страны.
-        """
-        return self.__get_aeroplanes(country)
